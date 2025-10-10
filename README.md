@@ -1,6 +1,6 @@
 # TLS Root Primer
 
-A small, single-purpose utility to help prime the Windows root certificate store for Rust applications, particularly those using `rustls`.
+A minimal, single-purpose utility to help prime the Windows root certificate store for Rust applications, particularly those using `rustls`.
 
 ## The Problem
 
