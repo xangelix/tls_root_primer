@@ -1,5 +1,8 @@
 # TLS Root Primer
 
+[![Crates.io](https://img.shields.io/crates/v/tls_root_primer.svg)](https://crates.io/crates/tls_root_primer)
+[![Docs.rs](https://docs.rs/tls_root_primer/badge.svg)](https://docs.rs/tls_root_primer)
+
 A minimal, single-purpose utility to help prime the Windows root certificate store for Rust applications, particularly those using `rustls`.
 
 ## The Problem
