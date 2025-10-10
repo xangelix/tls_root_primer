@@ -46,7 +46,7 @@ fn main() {
         ],
         // A list of domains that are signed by the target CA.
         // The first one that successfully connects will trigger the priming.
-        &["google.com", "letsencrypt.org"],
+        &["valid-isrgrootx1.letsencrypt.org", "valid-isrgrootx2.letsencrypt.org"],
     );
 
     if let Err(e) = result {
