@@ -1,0 +1,24 @@
+[package]
+name = "tls_root_primer"
+version = "0.1.0"
+edition = "2024"
+description = "Triggers Windows's automatic root certificate installation for Rust applications, fixing TLS issues on clean systems."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/xangelix/tls_root_primer"
+keywords = ["tls", "certificate", "root", "prime", "rustls"]
+categories = [
+    "os::windows-apis",
+    "network-programming",
+    "security",
+    "development-tools",
+    "development-tools::debugging",
+]
+
+[dependencies]
+thiserror = "2"
+tracing = "0.1"
+
+[target.'cfg(windows)'.dependencies]
+native-tls = "0.2"
+schannel = "0.1"
