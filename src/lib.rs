@@ -9,12 +9,12 @@ pub type Result<T> = std::result::Result<T, PrimerError>;
 #[derive(Error, Debug)]
 pub enum PrimerError {
     /// The underlying `native-tls` connector could not be built.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("failed to build TLS connector")]
     TlsConnector(#[from] native_tls::Error),
 
     /// A DNS lookup for a given domain failed.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("DNS lookup failed for domain '{domain}'")]
     DnsLookup {
         domain: String,
@@ -23,12 +23,12 @@ pub enum PrimerError {
     },
 
     /// No IP addresses were found for a given domain.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("no IP addresses found for domain '{0}'")]
     NoAddressesFound(String),
 
     /// A TCP connection to a remote address failed.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("TCP connect to {addr} failed")]
     TcpConnect {
         addr: std::net::SocketAddr,
@@ -37,7 +37,7 @@ pub enum PrimerError {
     },
 
     /// The TLS handshake with the remote server failed.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("TLS handshake to {domain} ({addr}) failed")]
     TlsHandshake {
         domain: String,
@@ -47,22 +47,22 @@ pub enum PrimerError {
     },
 
     /// An I/O error occurred during the TLS priming operation.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("I/O error during TLS operation")]
     TlsIo(#[from] std::io::Error),
 
     /// All provided priming endpoints failed to connect and trigger trust installation.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("all priming endpoints failed")]
     AllPrimingEndpointsFailed(#[source] Box<PrimerError>),
 
     /// No domains were provided to attempt priming.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("no priming endpoints were provided")]
     NoPrimingEndpoints,
 
     /// An error occurred while interacting with the Windows Certificate Store.
-    #[cfg(target_os = "windows")]
+    #[cfg(any(windows, feature = "docs-only"))]
     #[error("failed to query certificate store")]
     CertStore(#[source] std::io::Error),
 }
@@ -90,7 +90,7 @@ pub const UNSAFE_LETS_ENCRYPT_ISRG_ROOT_X2_FINGERPRINT: &str =
     "BDB1B93CD5978D45C6261455F8DB95C75AD153AF";
 
 /// On non-Windows platforms, this is a no-op that always returns `Ok(())`.
-#[cfg(not(target_os = "windows"))]
+#[cfg(not(any(windows, feature = "docs-only")))]
 pub const fn prime_cert(_fingerprints: &[&str], _touch_domains: &[&str]) -> Result<()> {
     Ok(())
 }
@@ -129,7 +129,7 @@ pub const fn prime_cert(_fingerprints: &[&str], _touch_domains: &[&str]) -> Resu
 ///     Ok(())
 /// }
 /// ```
-#[cfg(target_os = "windows")]
+#[cfg(any(windows, feature = "docs-only"))]
 pub fn prime_cert(fingerprints: &[&str], touch_domains: &[&str]) -> Result<()> {
     if !windows_impl::is_cert_trusted_locally(fingerprints)? {
         tracing::warn!(
@@ -149,10 +149,12 @@ pub fn prime_cert(fingerprints: &[&str], touch_domains: &[&str]) -> Result<()> {
 }
 
 /// Contains the Windows-specific implementation details.
-#[cfg(target_os = "windows")]
+#[cfg(any(windows, feature = "docs-only"))]
 mod windows_impl {
     use super::{PrimerError, Result};
     use native_tls::{HandshakeError, Protocol, TlsConnector};
+
+    #[cfg(windows)]
     use schannel::{cert_context::HashAlgorithm, cert_store::CertStore};
     use std::{
         io::{Read, Write},
@@ -250,6 +252,7 @@ mod windows_impl {
     }
 
     /// Checks local machine and current user certificate stores for the given fingerprints.
+    #[cfg(windows)]
     pub(super) fn is_cert_trusted_locally(fingerprints: &[&str]) -> Result<bool> {
         let decoded_fps: Vec<Vec<u8>> = fingerprints.iter().map(|s| decode_hex(s)).collect();
         let fps_slices: Vec<&[u8]> = decoded_fps.iter().map(Vec::as_slice).collect();

@@ -15,10 +15,22 @@ categories = [
     "development-tools::debugging",
 ]
 
+[features]
+# This feature enables the optional dependencies needed for doc generation on non-windows hosts.
+docs-only = ["dep:native-tls", "dep:schannel"]
+
 [dependencies]
 thiserror = "2"
 tracing = "0.1"
 
+# Optional just for doc generation on non-windows hosts
+native-tls = { version = "0.2", optional = true }
+schannel = { version = "0.1", optional = true }
+
 [target.'cfg(windows)'.dependencies]
 native-tls = "0.2"
 schannel = "0.1"
+
+[package.metadata.docs.rs]
+# Tell docs.rs to activate our feature so it can build the full documentation.
+all-features = true
