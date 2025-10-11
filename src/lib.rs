@@ -124,7 +124,7 @@ pub const fn prime_cert(_fingerprints: &[&str], _touch_domains: &[&str]) -> Resu
 /// fn main() -> tls_root_primer::Result<()> {
 ///     prime_cert(
 ///         &[UNSAFE_LETS_ENCRYPT_ISRG_ROOT_X1_FINGERPRINT],
-///         &["google.com", "letsencrypt.org"]
+///         &["valid-isrgrootx1.letsencrypt.org"],
 ///     )?;
 ///     Ok(())
 /// }
