@@ -3,11 +3,11 @@
 use thiserror::Error;
 
 /// A specialized `Result` type for this crate's operations.
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, PrimerError>;
 
 /// Represents errors that can occur while priming the certificate store.
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum PrimerError {
     /// The underlying `native-tls` connector could not be built.
     #[cfg(target_os = "windows")]
     #[error("failed to build TLS connector")]
@@ -54,7 +54,7 @@ pub enum Error {
     /// All provided priming endpoints failed to connect and trigger trust installation.
     #[cfg(target_os = "windows")]
     #[error("all priming endpoints failed")]
-    AllPrimingEndpointsFailed(#[source] Box<Error>),
+    AllPrimingEndpointsFailed(#[source] Box<PrimerError>),
 
     /// No domains were provided to attempt priming.
     #[cfg(target_os = "windows")]
@@ -151,7 +151,7 @@ pub fn prime_cert(fingerprints: &[&str], touch_domains: &[&str]) -> Result<()> {
 /// Contains the Windows-specific implementation details.
 #[cfg(target_os = "windows")]
 mod windows_impl {
-    use super::{Error, Result};
+    use super::{PrimerError, Result};
     use native_tls::{HandshakeError, Protocol, TlsConnector};
     use schannel::{cert_context::HashAlgorithm, cert_store::CertStore};
     use std::{
@@ -166,17 +166,17 @@ mod windows_impl {
             .min_protocol_version(Some(Protocol::Tlsv12))
             .build()?;
 
-        let mut last_err: Option<Error> = None;
+        let mut last_err: Option<PrimerError> = None;
 
         if touch_domains.is_empty() {
-            return Err(Error::NoPrimingEndpoints);
+            return Err(PrimerError::NoPrimingEndpoints);
         }
 
         for &domain in touch_domains {
             let addrs = match (domain, 443).to_socket_addrs() {
                 Ok(addrs) => addrs.collect::<Vec<_>>(),
                 Err(e) => {
-                    last_err = Some(Error::DnsLookup {
+                    last_err = Some(PrimerError::DnsLookup {
                         domain: domain.to_string(),
                         source: e,
                     });
@@ -185,7 +185,7 @@ mod windows_impl {
             };
 
             if addrs.is_empty() {
-                last_err = Some(Error::NoAddressesFound(domain.to_string()));
+                last_err = Some(PrimerError::NoAddressesFound(domain.to_string()));
                 continue;
             }
 
@@ -203,8 +203,8 @@ mod windows_impl {
             }
         }
 
-        Err(Error::AllPrimingEndpointsFailed(Box::new(
-            last_err.unwrap_or(Error::NoPrimingEndpoints),
+        Err(PrimerError::AllPrimingEndpointsFailed(Box::new(
+            last_err.unwrap_or(PrimerError::NoPrimingEndpoints),
         )))
     }
 
@@ -215,7 +215,7 @@ mod windows_impl {
         connector: &TlsConnector,
     ) -> Result<()> {
         let tcp = TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-            .map_err(|e| Error::TcpConnect { addr, source: e })?;
+            .map_err(|e| PrimerError::TcpConnect { addr, source: e })?;
         tcp.set_read_timeout(Some(Duration::from_secs(10)))?;
         tcp.set_write_timeout(Some(Duration::from_secs(10)))?;
 
@@ -224,13 +224,13 @@ mod windows_impl {
             Err(e) => {
                 let err = match e {
                     // This is the expected error path for handshake failures.
-                    HandshakeError::Failure(tls_error) => Error::TlsHandshake {
+                    HandshakeError::Failure(tls_error) => PrimerError::TlsHandshake {
                         domain: domain.to_string(),
                         addr,
                         source: tls_error,
                     },
                     // This should not happen with a blocking stream, but we handle it defensively.
-                    HandshakeError::WouldBlock(_) => Error::TlsIo(std::io::Error::new(
+                    HandshakeError::WouldBlock(_) => PrimerError::TlsIo(std::io::Error::new(
                         std::io::ErrorKind::Other,
                         "unexpected WouldBlock during TLS handshake with a blocking stream",
                     )),
@@ -259,7 +259,7 @@ mod windows_impl {
             for cert in store.certs() {
                 let fp = cert
                     .fingerprint(HashAlgorithm::sha1())
-                    .map_err(Error::CertStore)?;
+                    .map_err(PrimerError::CertStore)?;
                 if fps_slices.iter().any(|f| *f == fp.as_slice()) {
                     return Ok(true);
                 }
