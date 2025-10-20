@@ -155,3 +155,27 @@ fn decode_hex(s: &str) -> Vec<u8> {
     }
     bytes
 }
+
+#[cfg(test)]
+mod tests {
+    use super::decode_hex;
+
+    #[test]
+    fn parses_plain_hex() {
+        let v = decode_hex("CABD2A79A1076A31F21D253635CB039D4329A5E8");
+        assert_eq!(v.len(), 20);
+    }
+
+    #[test]
+    fn parses_colon_separated() {
+        let v = decode_hex("CA:BD:2A:79:A1:07:6A:31:F2:1D:25:36:35:CB:03:9D:43:29:A5:E8");
+        assert_eq!(v.len(), 20);
+    }
+
+    #[test]
+    fn case_insensitive() {
+        let a = decode_hex("abcd".repeat(10).as_str());
+        let b = decode_hex("ABCD".repeat(10).as_str());
+        assert_eq!(a, b);
+    }
+}
