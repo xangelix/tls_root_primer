@@ -216,10 +216,13 @@ mod windows_impl {
         addr: std::net::SocketAddr,
         connector: &TlsConnector,
     ) -> Result<()> {
-        let tcp = TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+        const CONNECT_TIMEOUT_SECS: u64 = 10;
+        const IO_TIMEOUT_SECS: u64 = 10;
+
+        let tcp = TcpStream::connect_timeout(&addr, Duration::from_secs(CONNECT_TIMEOUT_SECS))
             .map_err(|e| PrimerError::TcpConnect { addr, source: e })?;
-        tcp.set_read_timeout(Some(Duration::from_secs(10)))?;
-        tcp.set_write_timeout(Some(Duration::from_secs(10)))?;
+        tcp.set_read_timeout(Some(Duration::from_secs(IO_TIMEOUT_SECS)))?;
+        tcp.set_write_timeout(Some(Duration::from_secs(IO_TIMEOUT_SECS)))?;
 
         let mut tls = match connector.connect(domain, tcp) {
             Ok(stream) => stream,
