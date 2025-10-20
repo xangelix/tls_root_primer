@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![forbid(unsafe_code)]
 
 /// Contains the Windows-specific implementation details.
 #[cfg(any(windows, feature = "docs-only"))]
