@@ -5,6 +5,8 @@ use std::{
 };
 
 use native_tls::{HandshakeError, Protocol, TlsConnector};
+
+#[cfg(windows)]
 use schannel::{cert_context::HashAlgorithm, cert_store::CertStore};
 
 use super::{PrimerError, Result};
