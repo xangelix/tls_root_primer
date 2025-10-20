@@ -33,5 +33,5 @@ native-tls = "0.2"
 schannel = "0.1"
 
 [package.metadata.docs.rs]
-# Tell docs.rs to activate our feature so it can build the full documentation.
+# Tell docs.rs to activate the docs-only feature when building the documentation.
 all-features = true
