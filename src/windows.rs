@@ -20,6 +20,7 @@ pub(super) fn try_prime_trust(touch_domains: &[&str]) -> Result<()> {
     let mut last_err: Option<PrimerError> = None;
 
     if touch_domains.is_empty() {
+        tracing::warn!("no priming endpoints provided; cannot trigger Windows root install");
         return Err(PrimerError::NoPrimingEndpoints);
     }
 
