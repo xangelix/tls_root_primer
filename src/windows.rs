@@ -25,7 +25,7 @@ pub(super) fn try_prime_trust(touch_domains: &[&str]) -> Result<()> {
     }
 
     for &domain in touch_domains {
-        let addrs = match (domain, 443).to_socket_addrs() {
+        let mut addrs = match (domain, 443).to_socket_addrs() {
             Ok(addrs) => addrs.collect::<Vec<_>>(),
             Err(e) => {
                 last_err = Some(PrimerError::DnsLookup {
@@ -35,6 +35,9 @@ pub(super) fn try_prime_trust(touch_domains: &[&str]) -> Result<()> {
                 continue;
             }
         };
+
+        // Prefer IPv4 first; avoids long timeouts on some dual-stack hosts.
+        addrs.sort_by_key(|a| a.is_ipv6());
 
         if addrs.is_empty() {
             last_err = Some(PrimerError::NoAddressesFound(domain.to_string()));
