@@ -24,7 +24,11 @@ pub(super) fn try_prime_trust(touch_domains: &[&str]) -> Result<()> {
         return Err(PrimerError::NoPrimingEndpoints);
     }
 
-    for &domain in touch_domains {
+    let mut seen = HashSet::new();
+    for &domain in touch_domains
+        .iter()
+        .filter(|d| seen.insert(d.to_ascii_lowercase()))
+    {
         let mut addrs = match (domain, 443).to_socket_addrs() {
             Ok(addrs) => addrs.collect::<Vec<_>>(),
             Err(e) => {
