@@ -180,4 +180,17 @@ mod tests {
         let b = decode_hex("ABCD".repeat(10).as_str());
         assert_eq!(a, b);
     }
+
+    #[test]
+    fn parses_with_spaces_and_dashes() {
+        let v = decode_hex("CA BD-2A 79 A1 07 6A 31 F2 1D 25 36 35 CB 03 9D 43 29 A5 E8");
+        assert_eq!(v.len(), 20);
+    }
+
+    #[test]
+    fn odd_nibble_is_ignored() {
+        // 3 nibbles -> 1 byte (0x0A), last nibble ignored.
+        let v = decode_hex("A:B:C");
+        assert_eq!(v, vec![0xAB]);
+    }
 }
