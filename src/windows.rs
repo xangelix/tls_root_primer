@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     io::{Read, Write},
     net::{TcpStream, ToSocketAddrs},
     time::Duration,
